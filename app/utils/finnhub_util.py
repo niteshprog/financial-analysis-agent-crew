@@ -3,7 +3,7 @@ methods related to Finnhub."""
 import finnhub, datetime
 from typing import Optional
 from ..core.finnhub_config import FinnHubConfig
-from log_util import setup_logger
+from .log_util import setup_logger
 
 logger = setup_logger()
 
@@ -22,6 +22,7 @@ class FinnHub(FinnHubConfig):
             raise BaseException('Auth failed for the Finnhub client.')
     
     def get_peers(self, company_symbol: str): 
+        "Return list of peers operating in same niche."
         try: 
             peers_list = self.__finnhub_client.company_peers(symbol=company_symbol)
             return peers_list
@@ -33,6 +34,10 @@ class FinnHub(FinnHubConfig):
         try: 
             formatted_from_date = begin_date.strftime("%Y-%m-%d")
             formatted_to_date = end_date.strftime("%Y-%m-%d")
+            logger.info(f"""{
+                "start_date": {formatted_from_date},
+                "end_date": {formatted_to_date}
+            }""")
             company_news = self.__finnhub_client.company_news(symbol=company_symbol, 
                                                               _from=formatted_from_date, 
                                                               to=formatted_to_date)
@@ -41,7 +46,7 @@ class FinnHub(FinnHubConfig):
             logger.error(msg=e)
             raise BaseException("Failed to get company's news")
         
-    def get_basic_financials(self, company_symbol: str, metric = 'all'):
+    def get_basic_financials(self, company_symbol: str, metric: str = None):
         try: 
             company_basic_financials = self.__finnhub_client.company_basic_financials(symbol=company_symbol,
                                                                                       metric=metric)
@@ -58,7 +63,7 @@ class FinnHub(FinnHubConfig):
             logger.error(msg=e) 
             raise BaseException('Failed to get company profile.')
 
-    def get_upcoming_ipos(self,begin_date: datetime, end_date: datetime):
+    def get_upcoming_ipos(self,begin_date: datetime, end_date: datetime = datetime.datetime.now()):
         try: 
             formatted_from_date = begin_date.strftime("%Y-%m-%d")
             formatted_to_date = end_date.strftime("%Y-%m-%d")
@@ -83,38 +88,39 @@ class FinnHub(FinnHubConfig):
             logger.error(msg=e) 
             raise BaseException('Failed to get historical earning for company.')
 
-    def get_visa_applications(self, company_symbol: str, begin_date: datetime, end_date: datetime):
-        try: 
-            formatted_from_date = begin_date.strftime("%Y-%m-%d")
-            formatted_to_date = end_date.strftime("%Y-%m-%d")
-            visa_application_details = self.__finnhub_client.stock_visa_application(symbol=company_symbol,
-                                                                                    _from=formatted_from_date,
-                                                                                    to=formatted_to_date)
-            return visa_application_details
-        except Exception as e:
-            logger.error(msg=e) 
-            raise BaseException('Failed to get visa applications.')
+    # def get_visa_applications(self, company_symbol: str, begin_date: datetime, end_date: datetime):
+    #     try: 
+    #         formatted_from_date = begin_date.strftime("%Y-%m-%d")
+    #         formatted_to_date = end_date.strftime("%Y-%m-%d")
+    #         visa_application_details = self.__finnhub_client.stock_visa_application(symbol=company_symbol,
+    #                                                                                 _from=formatted_from_date,
+    #                                                                                 to=formatted_to_date)
+    #         # visa_application_details = self.__finnhub_client.stock_visa_application("AAPL", "2021-01-01", "2022-06-15")
+    #         return visa_application_details
+    #     except Exception as e:
+    #         logger.error(msg=e) 
+    #         raise BaseException('Failed to get visa applications.')
         
-    def get_reported_financials(self, company_symbol: str, frequency: str = None, access_number: str = None, begin_date: datetime = None, end_date: datetime = None): 
-        try: 
-            kwargs = {'symbol': company_symbol}
+    # def get_reported_financials(self, company_symbol: str, frequency: str = None, access_number: str = None, begin_date: datetime = None, end_date: datetime = None): 
+    #     try: 
+    #         kwargs = {'symbol': company_symbol}
 
-            if frequency: 
-                kwargs['freq'] = frequency
-            else: 
-                kwargs['freq'] = 'annual'
+    #         if frequency: 
+    #             kwargs['freq'] = frequency
+    #         else: 
+    #             kwargs['freq'] = 'annual'
             
-            if access_number: 
-                kwargs['accessNumber'] = access_number
+    #         if access_number: 
+    #             kwargs['accessNumber'] = access_number
 
-            if begin_date and end_date: 
-                kwargs['_from'] = begin_date.strftime("%Y-%m-%d")
-                kwargs['to'] = end_date.strftime("%Y-%m-%d")
+    #         if begin_date and end_date: 
+    #             kwargs['_from'] = begin_date.strftime("%Y-%m-%d")
+    #             kwargs['to'] = end_date.strftime("%Y-%m-%d")
 
-            reported_financials = self.__finnhub_client.financials_reported(**kwargs)
+    #         reported_financials = self.__finnhub_client.financials_reported(**kwargs)
 
-            return reported_financials
+    #         return reported_financials
 
-        except Exception as e: 
-            logger.error(msg=e) 
-            raise BaseException('Failed to get financials.')
+    #     except Exception as e: 
+    #         logger.error(msg=e) 
+    #         raise BaseException('Failed to get financials.')
